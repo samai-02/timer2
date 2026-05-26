@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>교육시간 휴식 타이머</title>
+  <style>
+    :root {
+      --navy: #0f172a;
+      --white: #f8fafc;
+      --gray: rgba(255, 255, 255, 0.72);
+      --line: rgba(255, 255, 255, 0.28);
+      --danger: #fecaca;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--white);
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(5, 10, 25, 0.32), rgba(5, 10, 25, 0.56)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2387ceeb'/%3E%3Cstop offset='47%25' stop-color='%23c7e9e8'/%3E%3Cstop offset='100%25' stop-color='%23f4e7c5'/%3E%3C/linearGradient%3E%3CradialGradient id='sun' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23fff7cc'/%3E%3Cstop offset='75%25' stop-color='%23ffd166'/%3E%3Cstop offset='100%25' stop-color='%23ffd166' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='14'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23sky)'/%3E%3Ccircle cx='1280' cy='155' r='125' fill='url(%23sun)' opacity='0.9'/%3E%3Cpath d='M0 570 C180 490 310 610 510 530 C730 440 890 575 1080 500 C1280 420 1430 495 1600 450 L1600 900 L0 900 Z' fill='%23385f56' opacity='0.72' filter='url(%23blur)'/%3E%3Cpath d='M0 630 C230 540 410 670 640 585 C850 505 1010 635 1240 552 C1400 495 1505 548 1600 515 L1600 900 L0 900 Z' fill='%23284a45' opacity='0.75'/%3E%3Cpath d='M0 700 C190 650 370 740 560 680 C780 610 960 720 1150 650 C1340 585 1470 640 1600 610 L1600 900 L0 900 Z' fill='%23182735' opacity='0.86'/%3E%3Crect x='0' y='735' width='1600' height='165' fill='%2314232f' opacity='0.95'/%3E%3Cpath d='M0 760 C160 730 280 790 440 758 C620 720 800 785 965 750 C1130 715 1290 770 1600 735 L1600 900 L0 900 Z' fill='%232f6f61' opacity='0.36'/%3E%3Cg opacity='0.28' filter='url(%23blur)'%3E%3Cellipse cx='260' cy='180' rx='160' ry='42' fill='%23ffffff'/%3E%3Cellipse cx='380' cy='205' rx='120' ry='34' fill='%23ffffff'/%3E%3Cellipse cx='1060' cy='255' rx='180' ry='44' fill='%23ffffff'/%3E%3Cellipse cx='1210' cy='280' rx='130' ry='35' fill='%23ffffff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px;
+    }
+
+    .timer-card {
+      width: min(980px, 92vw);
+      padding: clamp(28px, 5vw, 64px);
+      border: 1px solid var(--line);
+      border-radius: 36px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.56), rgba(15, 23, 42, 0.28));
+      backdrop-filter: blur(18px);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      font-size: clamp(15px, 2vw, 20px);
+      letter-spacing: 0.18em;
+      color: var(--gray);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 68px);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      font-weight: 850;
+    }
+
+    .message {
+      margin: 18px auto 30px;
+      color: rgba(248, 250, 252, 0.84);
+      font-size: clamp(17px, 2vw, 24px);
+      line-height: 1.55;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(86px, 17vw, 210px);
+      line-height: 0.95;
+      letter-spacing: -0.08em;
+      font-weight: 900;
+      text-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .progress-wrap {
+      width: min(680px, 100%);
+      height: 14px;
+      margin: 38px auto 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      overflow: hidden;
+    }
+
+    .progress {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #bfdbfe, #ffffff);
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform 0.3s linear;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    button, select, input {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      font: inherit;
+      font-weight: 750;
+      padding: 14px 20px;
+      outline: none;
+      backdrop-filter: blur(12px);
+    }
+
+    button {
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    .primary {
+      background: rgba(248, 250, 252, 0.92);
+      color: var(--navy);
+    }
+
+    .primary:hover:not(:disabled) {
+      background: #fff;
+    }
+
+    select option {
+      color: #0f172a;
+    }
+
+    input {
+      width: 96px;
+      text-align: center;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 18px;
+      font-size: 15px;
+      color: rgba(248, 250, 252, 0.72);
+    }
+
+    .status.warning {
+      color: var(--danger);
+    }
+
+    .copyright {
+      margin-top: 28px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(248, 250, 252, 0.5);
+      font-weight: 600;
+    }
+
+    .done .time {
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.035); }
+    }
+
+    @media (max-width: 640px) {
+      body { overflow: auto; }
+      .app { padding: 18px; }
+      .timer-card { border-radius: 28px; }
+      button, select, input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="timer-card" id="card">
+      <p class="eyebrow">BREAK TIME</p>
+      <h1 id="title">잠시 쉬어가세요</h1>
+      <p class="message" id="message">몸을 가볍게 풀고, 물 한 잔 마시고 오세요.</p>
+
+      <div class="time" id="time">10:00</div>
+
+      <div class="progress-wrap" aria-label="남은 시간 진행률">
+        <div class="progress" id="progress"></div>
+      </div>
+
+      <div class="controls">
+        <select id="preset" aria-label="휴식 시간 선택">
+          <option value="300">5분 휴식</option>
+          <option value="600" selected>10분 휴식</option>
+          <option value="900">15분 휴식</option>
+          <option value="1200">20분 휴식</option>
+        </select>
+        <input id="customMinutes" type="number" min="1" max="180" placeholder="분" aria-label="직접 입력 분" />
+        <button class="primary" id="startBtn" type="button">시작</button>
+        <button id="pauseBtn" type="button">일시정지</button>
+        <button id="resetBtn" type="button">초기화</button>
+        <button id="fullscreenBtn" type="button">전체화면</button>
+        <button id="soundBtn" type="button">휴식음 ON</button>
+      </div>
+
+      <div class="status" id="status" role="status" aria-live="polite">스페이스바: 시작/일시정지 · F: 전체화면 · R: 초기화</div>
+
+      <div class="copyright">© samsotta</div>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const timeEl = document.getElementById('time');
+    const titleEl = document.getElementById('title');
+    const messageEl = document.getElementById('message');
+    const progressEl = document.getElementById('progress');
+    const presetEl = document.getElementById('preset');
+    const customEl = document.getElementById('customMinutes');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const soundBtn = document.getElementById('soundBtn');
+    const statusEl = document.getElementById('status');
+    const cardEl = document.getElementById('card');
+
+    let totalSeconds = Number(presetEl.value);
+    let remainingSeconds = totalSeconds;
+    let timerId = null;
+    let isRunning = false;
+    let soundOn = false;
+    let audioCtx = null;
+    let ambientNodes = [];
+    let audioAllowed = Boolean(window.AudioContext || window.webkitAudioContext);
+
+    function setStatus(text, type = 'normal') {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('warning', type === 'warning');
+    }
+
+    function safeCall(fn, fallbackMessage) {
+      try {
+        return fn();
+      } catch (error) {
+        console.warn(fallbackMessage, error);
+        setStatus(fallbackMessage, 'warning');
+        return null;
+      }
+    }
+
+    function getSelectedSeconds() {
+      const customValue = Number(customEl.value);
+      if (Number.isFinite(customValue) && customValue > 0) {
+        return Math.min(Math.floor(customValue), 180) * 60;
+      }
+      return Number(presetEl.value);
+    }
+
+    function formatTime(seconds) {
+      const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+      const m = Math.floor(safeSeconds / 60).toString().padStart(2, '0');
+      const s = Math.floor(safeSeconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function render() {
+      timeEl.textContent = formatTime(remainingSeconds);
+      const ratio = totalSeconds === 0 ? 0 : remainingSeconds / totalSeconds;
+      progressEl.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio))})`;
+
+      if (remainingSeconds <= 0) {
+        cardEl.classList.add('done');
+        titleEl.textContent = '휴식 종료';
+        messageEl.textContent = '이제 다시 집중할 시간입니다.';
+        setStatus('타이머가 종료되었습니다. 초기화 후 다시 시작할 수 있습니다.');
+      } else if (isRunning) {
+        cardEl.classList.remove('done');
+        titleEl.textContent = '잠시 쉬어가세요';
+        messageEl.textContent = '호흡을 고르고, 다음 세션을 준비하세요.';
+        setStatus('타이머가 진행 중입니다.');
+      } else {
+        cardEl.classList.remove('done');
+        titleEl.textContent = '잠시 쉬어가세요';
+        messageEl.textContent = '몸을 가볍게 풀고, 물 한 잔 마시고 오세요.';
+        setStatus('스페이스바: 시작/일시정지 · F: 전체화면 · R: 초기화');
+      }
+    }
+
+    function startTimer() {
+      if (remainingSeconds <= 0) resetTimer();
+      if (isRunning) return;
+
+      if (remainingSeconds === totalSeconds) {
+        totalSeconds = getSelectedSeconds();
+        remainingSeconds = totalSeconds;
+      }
+
+      isRunning = true;
+      render();
+
+      timerId = window.setInterval(() => {
+        remainingSeconds -= 1;
+        if (remainingSeconds <= 0) {
+          remainingSeconds = 0;
+          stopTimer(false);
+          playFinishBell();
+        }
+        render();
+      }, 1000);
+    }
+
+    function stopTimer(shouldRender = true) {
+      isRunning = false;
+      if (timerId !== null) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+      if (shouldRender) render();
+    }
+
+    function resetTimer() {
+      stopTimer(false);
+      totalSeconds = getSelectedSeconds();
+      remainingSeconds = totalSeconds;
+      render();
+    }
+
+    function toggleTimer() {
+      if (isRunning) stopTimer();
+      else startTimer();
+    }
+
+    function canUseFullscreen() {
+      return Boolean(
+        document.fullscreenEnabled &&
+        document.documentElement &&
+        document.documentElement.requestFullscreen
+      );
+    }
+
+    async function toggleFullscreen() {
+      if (!canUseFullscreen()) {
+        setStatus('현재 실행 환경에서 전체화면 기능이 허용되지 않습니다. Vercel 배포 환경에서는 보통 정상 동작합니다.', 'warning');
+        return;
+      }
+
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+          fullscreenBtn.textContent = '전체화면 해제';
+        } else if (document.exitFullscreen) {
+          await document.exitFullscreen();
+          fullscreenBtn.textContent = '전체화면';
+        }
+      } catch (error) {
+        console.warn('Fullscreen request was blocked.', error);
+        setStatus('브라우저 권한 정책 때문에 전체화면 전환이 차단되었습니다. 새 탭 또는 배포된 주소에서 실행해 보세요.', 'warning');
+      }
+    }
+
+    function ensureAudio() {
+      if (!audioAllowed) return false;
+
+      return safeCall(() => {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          audioAllowed = false;
+          return false;
+        }
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().catch((error) => {
+            console.warn('Audio resume was blocked.', error);
+            audioAllowed = false;
+            setStatus('브라우저 권한 정책 때문에 사운드가 차단되었습니다. 타이머는 무음으로 계속 사용할 수 있습니다.', 'warning');
+          });
+        }
+        return true;
+      }, '브라우저 권한 정책 때문에 사운드가 차단되었습니다. 타이머는 무음으로 계속 사용할 수 있습니다.') === true;
+    }
+
+    function startAmbientSound() {
+      if (!ensureAudio()) return false;
+      stopAmbientSound();
+
+      try {
+        const master = audioCtx.createGain();
+        master.gain.value = 0.035;
+        master.connect(audioCtx.destination);
+
+        const notes = [261.63, 329.63, 392.00];
+        notes.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.value = 0.12 / (index + 1);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start();
+          ambientNodes.push(osc, gain);
+        });
+        ambientNodes.push(master);
+        return true;
+      } catch (error) {
+        console.warn('Ambient sound failed.', error);
+        audioAllowed = false;
+        setStatus('사운드 생성이 차단되어 무음 모드로 전환했습니다.', 'warning');
+        stopAmbientSound();
+        return false;
+      }
+    }
+
+    function stopAmbientSound() {
+      ambientNodes.forEach((node) => {
+        try {
+          if (typeof node.stop === 'function') node.stop();
+        } catch (error) {}
+
+        try {
+          if (typeof node.disconnect === 'function') node.disconnect();
+        } catch (error) {}
+      });
+      ambientNodes = [];
+    }
+
+    function toggleSound() {
+      if (soundOn) {
+        soundOn = false;
+        stopAmbientSound();
+        soundBtn.textContent = '휴식음 ON';
+        return;
+      }
+
+      const started = startAmbientSound();
+      if (started) {
+        soundOn = true;
+        soundBtn.textContent = '휴식음 OFF';
+      } else {
+        soundOn = false;
+        soundBtn.textContent = '휴식음 사용 불가';
+      }
+    }
+
+    function playFinishBell() {
+      if (!ensureAudio()) return;
+
+      try {
+        const now = audioCtx.currentTime;
+        [660, 880, 1046].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, now + i * 0.18);
+          gain.gain.linearRampToValueAtTime(0.18, now + i * 0.18 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.55);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.18);
+          osc.stop(now + i * 0.18 + 0.6);
+        });
+      } catch (error) {
+        console.warn('Finish bell failed.', error);
+      }
+    }
+
+    function initializeFeatureAvailability() {
+      if (!canUseFullscreen()) {
+        fullscreenBtn.disabled = true;
+        fullscreenBtn.title = '현재 실행 환경에서 전체화면 API가 허용되지 않습니다.';
+      }
+
+      if (!audioAllowed) {
+        soundBtn.disabled = true;
+        soundBtn.textContent = '휴식음 사용 불가';
+        soundBtn.title = '현재 브라우저에서 Web Audio API가 지원되지 않습니다.';
+      }
+    }
+
+    function runTests() {
+      console.assert(formatTime(0) === '00:00', 'formatTime should format zero seconds.');
+      console.assert(formatTime(65) === '01:05', 'formatTime should format 65 seconds.');
+      console.assert(formatTime(-10) === '00:00', 'formatTime should clamp negative seconds.');
+
+      customEl.value = '3';
+      console.assert(getSelectedSeconds() === 180, 'Custom minute input should override preset.');
+      customEl.value = '999';
+      console.assert(getSelectedSeconds() === 10800, 'Custom minute input should be capped at 180 minutes.');
+      customEl.value = '';
+      console.assert(getSelectedSeconds() === Number(presetEl.value), 'Empty custom input should use preset.');
+
+      console.assert(typeof canUseFullscreen() === 'boolean', 'Fullscreen availability check should return boolean.');
+    }
+
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', () => stopTimer());
+    resetBtn.addEventListener('click', resetTimer);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    soundBtn.addEventListener('click', toggleSound);
+    presetEl.addEventListener('change', resetTimer);
+    customEl.addEventListener('input', resetTimer);
+
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenBtn.textContent = document.fullscreenElement ? '전체화면 해제' : '전체화면';
+    });
+
+    document.addEventListener('keydown', (event) => {
+      const activeElement = document.activeElement;
+      const tag = activeElement && activeElement.tagName ? activeElement.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'select') return;
+
+      if (event.code === 'Space') {
+        event.preventDefault();
+        toggleTimer();
+      }
+      if (event.key.toLowerCase() === 'f') toggleFullscreen();
+      if (event.key.toLowerCase() === 'r') resetTimer();
+    });
+
+    initializeFeatureAvailability();
+    runTests();
+    render();
+  </script>
+</body>
+</html>
